@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Be My Valentine? ❤️</title>
+    <style>
+        :root { --primary: #ff4d6d; --bg: #fff0f3; }
+        
+        body { 
+            margin: 0; 
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            height: 100vh; 
+            background: var(--bg); 
+            font-family: 'Arial', sans-serif; 
+            overflow: hidden;
+        }
+        
+        .card { 
+            text-align: center; 
+            background: white; 
+            padding: 40px; 
+            border-radius: 20px; 
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1); 
+            width: 350px; 
+            height: 250px; /* Fixed height to give the button room to move inside */
+            position: relative; /* Crucial: the button moves relative to this */
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        h1 { color: var(--primary); font-size: 1.6rem; margin: 0; }
+
+        .btn-container {
+            position: relative;
+            flex-grow: 1;
+            margin-top: 20px;
+        }
+
+        button { 
+            padding: 12px 25px; 
+            font-size: 1rem; 
+            border: none; 
+            border-radius: 50px; 
+            cursor: pointer; 
+            font-weight: bold;
+            min-width: 90px;
+        }
+
+        #yesBtn { 
+            background: #4CAF50; 
+            color: white; 
+            position: absolute;
+            left: 20%;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+
+        #noBtn { 
+            background: var(--primary); 
+            color: white; 
+            position: absolute; 
+            left: 60%;
+            top: 50%;
+            transform: translateY(-50%);
+            z-index: 10;
+            transition: all 0.2s ease;
+        }
+
+        #popup { 
+            display: none; position: fixed; top: 50%; left: 50%; 
+            transform: translate(-50%, -50%); background: white; padding: 30px; 
+            border-radius: 20px; box-shadow: 0 0 100px rgba(0,0,0,0.3); z-index: 100; 
+            text-align: center; 
+        }
+
+        .overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.4); z-index: 90; }
+    </style>
+</head>
+<body>
+
+    <div class="card" id="mainCard">
+        <h1 id="mainQuestion">Will you be my Valentine? ❤️</h1>
+        <div class="btn-container" id="area">
+            <button id="yesBtn">Yes</button>
+            <button id="noBtn">No</button>
+        </div>
+    </div>
+
+    <div class="overlay" id="overlay"></div>
+    <div id="popup">
+        <h2 style="color: var(--primary)">I knew you'd say yes! 😘</h2>
+        <p>I love you too!</p>
+    </div>
+
+    <script>
+        const noBtn = document.getElementById('noBtn');
+        const yesBtn = document.getElementById('yesBtn');
+        const mainQuestion = document.getElementById('mainQuestion');
+        const area = document.getElementById('area');
+        
+        let history = [];
+        let noCount = 0;
+
+        const reactions = [
+            "Wait, what? 😮", "Seriously? 😭", "I'm gonna cry... 🥺", 
+            "You're mean! 💔", "Pwease?? 😤", "Wrong way! ❌"
+        ];
+
+        function moveNoButton() {
+            noCount++;
+            history.push(`No attempt #${noCount}`);
+
+            // Update text
+            mainQuestion.innerText = reactions[Math.floor(Math.random() * reactions.length)];
+
+            // Get boundaries of the button container (the space inside the card)
+            const areaWidth = area.offsetWidth;
+            const areaHeight = area.offsetHeight;
+            const btnWidth = noBtn.offsetWidth;
+            const btnHeight = noBtn.offsetHeight;
+
+            // Generate random positions restricted to the card area
+            const maxX = areaWidth - btnWidth;
+            const maxY = areaHeight - btnHeight;
+
+            const randomX = Math.floor(Math.random() * maxX);
+            const randomY = Math.floor(Math.random() * maxY);
+
+            noBtn.style.left = randomX + 'px';
+            noBtn.style.top = randomY + 'px';
+            noBtn.style.transform = 'none'; // Remove the initial centering
+        }
+
+        noBtn.addEventListener('mouseover', moveNoButton);
+        noBtn.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            moveNoButton();
+        });
+
+        yesBtn.addEventListener('click', () => {
+            history.push("YES! ✅");
+            
+            document.getElementById('overlay').style.display = 'block';
+            document.getElementById('popup').style.display = 'block';
+
+            // Silent logging for your remote tracking
+            fetch("https://formspree.io/f/mgozqzzv", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    message: "Valentine Log",
+                    pathTaken: history.join(" -> "),
+                    totalNo: noCount
+                })
+            });
+        });
+    </script>
+</body>
+</html>
