@@ -5,11 +5,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Be My Valentine? ❤️</title>
     <style>
-        :root { --primary: #ff4d6d; --bg: #fff0f3; }
+        :root { --primary: #ff4d6d; --bg: #fff0f3; --accent: #ff758f; }
         
         body { 
             margin: 0; 
             display: flex; 
+            flex-direction: column;
             justify-content: center; 
             align-items: center; 
             height: 100vh; 
@@ -25,11 +26,12 @@
             border-radius: 20px; 
             box-shadow: 0 10px 30px rgba(0,0,0,0.1); 
             width: 350px; 
-            height: 250px; /* Fixed height to give the button room to move inside */
-            position: relative; /* Crucial: the button moves relative to this */
+            height: 250px; 
+            position: relative; 
             display: flex;
             flex-direction: column;
             justify-content: space-between;
+            z-index: 1;
         }
 
         h1 { color: var(--primary); font-size: 1.6rem; margin: 0; }
@@ -47,37 +49,66 @@
             border-radius: 50px; 
             cursor: pointer; 
             font-weight: bold;
-            min-width: 90px;
+            transition: all 0.2s;
         }
 
-        #yesBtn { 
-            background: #4CAF50; 
-            color: white; 
-            position: absolute;
-            left: 20%;
-            top: 50%;
-            transform: translateY(-50%);
-        }
+        #yesBtn { background: #4CAF50; color: white; position: absolute; left: 20%; top: 50%; transform: translateY(-50%); }
 
         #noBtn { 
-            background: var(--primary); 
-            color: white; 
-            position: absolute; 
-            left: 60%;
-            top: 50%;
-            transform: translateY(-50%);
+            background: var(--primary); color: white; position: absolute; 
+            left: 60%; top: 50%; transform: translateY(-50%);
             z-index: 10;
-            transition: all 0.2s ease;
         }
 
-        #popup { 
+        /* Popups */
+        #popup, #letterPopup { 
             display: none; position: fixed; top: 50%; left: 50%; 
             transform: translate(-50%, -50%); background: white; padding: 30px; 
             border-radius: 20px; box-shadow: 0 0 100px rgba(0,0,0,0.3); z-index: 100; 
-            text-align: center; 
+            text-align: center; width: 320px;
+        }
+
+        #letterPopup { 
+            width: 85%; max-width: 400px; 
+            border: 2px solid var(--primary);
+            background: #fffbff;
         }
 
         .overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.4); z-index: 90; }
+
+        /* The "Block" Button Style */
+        .block-btn {
+            background: #ef0909;
+            color: white;
+            margin-top: 20px;
+            font-size: 0.85rem;
+            width: 100%;
+        }
+
+        .copyright {
+            position: absolute;
+            bottom: 20px;
+            font-size: 0.75rem;
+            color: #b0b0b0;
+            font-style: italic;
+        }
+
+        .letter-text {
+            text-align: left;
+            line-height: 1.6;
+            color: #444;
+            font-size: 0.95rem;
+        }
+
+        .close-btn {
+            margin-top: 20px;
+            background: #f0f0f0;
+            color: #666;
+            font-size: 0.8rem;
+            padding: 10px;
+            width: 100%;
+            border-radius: 10px;
+        }
     </style>
 </head>
 <body>
@@ -91,16 +122,35 @@
     </div>
 
     <div class="overlay" id="overlay"></div>
+
     <div id="popup">
         <h2 style="color: var(--primary)">I knew you'd say yes! 😘</h2>
-        <p>I love you too!</p>
+        <p>You're stuck with me now.</p>
+        <button class="block-btn" id="openLetterBtn">Click here to block this annoying person 🚫</button>
     </div>
+
+    <div id="letterPopup">
+        <h3 style="color: var(--primary); margin-top: 0;">For My Sunny ✨</h3>
+        <div class="letter-text">
+            Hey Mittu hmm.....sruthi hmmm.....sunshine hmmm........ my dear dear sunnyyyyyyyyy✨ <br><br>
+            Hope you are taking care of yourself, it's been a while and hope you are doing great out there. <br><br>
+            Anyways just got bored anduke just ignore it... hope you are eating well and sleeping well i guess. <br><br>
+            And to Ms. Sruthi Veladandi, naa sunnyy ki em ana ayithe ninu sampestha jagrtha! <br><br>
+            Take care ....miss you...bye......Love you✨💗
+        </div>
+        <br>
+        <h3 style="color: var(--primary); margin-top: 0;">From ur Wastefellow 💗</h3>
+        <button class="close-btn" onclick="closeAll()">Hope not blocking me yet I guess.. 🙄</button>
+    </div>
+
+    <div class="copyright">@copyright your's wastefellow</div>
 
     <script>
         const noBtn = document.getElementById('noBtn');
         const yesBtn = document.getElementById('yesBtn');
         const mainQuestion = document.getElementById('mainQuestion');
         const area = document.getElementById('area');
+        const openLetterBtn = document.getElementById('openLetterBtn');
         
         let history = [];
         let noCount = 0;
@@ -113,17 +163,13 @@
         function moveNoButton() {
             noCount++;
             history.push(`No attempt #${noCount}`);
-
-            // Update text
             mainQuestion.innerText = reactions[Math.floor(Math.random() * reactions.length)];
 
-            // Get boundaries of the button container (the space inside the card)
             const areaWidth = area.offsetWidth;
             const areaHeight = area.offsetHeight;
             const btnWidth = noBtn.offsetWidth;
             const btnHeight = noBtn.offsetHeight;
 
-            // Generate random positions restricted to the card area
             const maxX = areaWidth - btnWidth;
             const maxY = areaHeight - btnHeight;
 
@@ -132,7 +178,7 @@
 
             noBtn.style.left = randomX + 'px';
             noBtn.style.top = randomY + 'px';
-            noBtn.style.transform = 'none'; // Remove the initial centering
+            noBtn.style.transform = 'none';
         }
 
         noBtn.addEventListener('mouseover', moveNoButton);
@@ -143,12 +189,11 @@
 
         yesBtn.addEventListener('click', () => {
             history.push("YES! ✅");
-            
             document.getElementById('overlay').style.display = 'block';
             document.getElementById('popup').style.display = 'block';
 
-            // Silent logging for your remote tracking
-            fetch("https://formspree.io/f/mgozqzzv", {
+            // Keeping your Formspree logging
+            fetch("", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
@@ -158,6 +203,22 @@
                 })
             });
         });
+
+        // The "Bait and Switch" Logic
+        openLetterBtn.addEventListener('click', () => {
+            openLetterBtn.innerText = "Error: System too much love to block! ⚠️";
+            openLetterBtn.style.background = "#ff4d6d";
+            
+            setTimeout(() => {
+                document.getElementById('popup').style.display = 'none';
+                document.getElementById('letterPopup').style.display = 'block';
+            }, 1200); // 1.2 second pause for the "Gotcha!" moment
+        });
+
+        function closeAll() {
+            document.getElementById('letterPopup').style.display = 'none';
+            document.getElementById('overlay').style.display = 'none';
+        }
     </script>
 </body>
 </html>
